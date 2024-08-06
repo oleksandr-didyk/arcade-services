@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Maestro.Data;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -63,17 +65,32 @@ public static class AuthenticationConfiguration
             throw new Exception("Entra authentication is missing in configuration");
         }
 
-        string entraRole = entraAuthConfig["UserRole"]
-            ?? throw new Exception("Expected 'UserRole' to be set in the Entra configuration containing " +
-                                   "a role on the application granted to API users");
+        List<string> entraRoles = [];
+        List<string> authSchemes = [.. AuthenticationSchemes];
 
-        var openIdAuth = services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
+        foreach (var appConfig in entraAuthConfig.GetChildren())
+        {
+            entraRoles.Add(appConfig["UserRole"]
+                ?? throw new Exception("Expected 'UserRole' to be set in the Entra configuration containing " +
+                                   "a role on the application granted to API users"));
 
-        openIdAuth
-            .AddMicrosoftIdentityWebApi(entraAuthConfig, EntraAuthorizationPolicyName);
+            string schemeName = appConfig.Key;
+            var appAuth = services.AddAuthentication(schemeName);
 
-        openIdAuth
-            .AddMicrosoftIdentityWebApp(entraAuthConfig);
+            appAuth
+                .AddMicrosoftIdentityWebApi(appConfig, schemeName);
+
+            if (schemeName == EntraAuthorizationPolicyName)
+            {
+                appAuth
+                    .AddMicrosoftIdentityWebApp(appConfig);
+            }
+
+            if (!authSchemes.Contains(schemeName))
+            {
+                authSchemes.Add(schemeName);
+            }
+        }
 
         var authentication = services
             .AddAuthentication(options =>
@@ -97,11 +114,11 @@ public static class AuthenticationConfiguration
                     var arcadeContribRole = GitHubClaimResolver.GetTeamRole("dotnet", "arcade-contrib");
                     var prodconSvcsRole = GitHubClaimResolver.GetTeamRole("dotnet", "prodconsvcs");
 
-                    policy.AddAuthenticationSchemes(AuthenticationSchemes);
+                    policy.AddAuthenticationSchemes([.. authSchemes]);
                     policy.RequireAuthenticatedUser();
                     policy.RequireAssertion(context =>
                     {
-                        return context.User.IsInRole(entraRole)
+                        return entraRoles.Any(r => context.User.IsInRole(r))
                             || context.User.IsInRole(dncengRole)
                             || context.User.IsInRole(arcadeContribRole)
                             || context.User.IsInRole(prodconSvcsRole);

@@ -420,7 +420,8 @@ public partial class Startup : StartupBase
 
             if (HostingEnvironment.IsDevelopment())
             {
-                e.MapControllers().AllowAnonymous();
+                //e.MapControllers().AllowAnonymous();
+                e.MapControllers();
             }
             else
             {
