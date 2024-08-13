@@ -6,12 +6,17 @@ using Azure.Storage.Queues;
 using ProductConstructionService.Api.Configuration;
 using ProductConstructionService.Api.Queue;
 using ProductConstructionService.Api.VirtualMonoRepo;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string vmrPath = builder.Configuration.GetRequiredValue(VmrConfiguration.VmrPathKey);
-string tmpPath = builder.Configuration.GetRequiredValue(VmrConfiguration.TmpPathKey);
-string vmrUri = builder.Configuration.GetRequiredValue(VmrConfiguration.VmrUriKey);
+//string vmrPath = builder.Configuration.GetRequiredValue(VmrConfiguration.VmrPathKey);
+//string tmpPath = builder.Configuration.GetRequiredValue(VmrConfiguration.TmpPathKey);
+//string vmrUri = builder.Configuration.GetRequiredValue(VmrConfiguration.VmrUriKey);
+
+string vmrPath = "C:\\Users\\odidyk\\source\\vmr";
+string tmpPath = "";
+string vmrUri = "";
 
 DefaultAzureCredential credential = new(new DefaultAzureCredentialOptions
 {
@@ -31,6 +36,11 @@ builder.ConfigurePcs(
     addEndpointAuthentication: !isDevelopment,
     addSwagger: useSwagger);
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    _ => ConnectionMultiplexer.Connect(
+        builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Missing connection string."))
+);
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -49,9 +59,9 @@ if (!isDevelopment)
 // and add swaggerUI
 if (isDevelopment)
 {
-    var queueServiceClient = app.Services.GetRequiredService<QueueServiceClient>();
-    var queueClient = queueServiceClient.GetQueueClient(app.Configuration.GetRequiredValue(QueueConfiguration.JobQueueNameConfigurationKey));
-    await queueClient.CreateIfNotExistsAsync();
+    //var queueServiceClient = app.Services.GetRequiredService<QueueServiceClient>();
+    //var queueClient = queueServiceClient.GetQueueClient(app.Configuration.GetRequiredValue(QueueConfiguration.JobQueueNameConfigurationKey));
+    //await queueClient.CreateIfNotExistsAsync();
 
     if (useSwagger)
     {

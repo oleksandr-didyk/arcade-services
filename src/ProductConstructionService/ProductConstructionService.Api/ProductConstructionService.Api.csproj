@@ -29,6 +29,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" VersionOverride="7.0.0" />
+    <PackageReference Include="NRedisStack" />
   </ItemGroup>
 
   <ItemGroup>

@@ -70,9 +70,9 @@ internal static class PcsConfiguration
 
         builder.AddTelemetry();
         builder.Services.Configure<AzureDevOpsTokenProviderOptions>("AzureDevOps", (o, s) => s.Bind(o));
-        builder.AddVmrRegistrations(vmrPath, tmpPath);
+        //builder.AddVmrRegistrations(vmrPath, tmpPath);
         builder.AddGitHubClientFactory();
-        builder.AddWorkitemQueues(azureCredential, waitForInitialization: initializeService);
+        //builder.AddWorkitemQueues(azureCredential, waitForInitialization: initializeService);
 
         builder.Services.AddScoped<IMaestroApi>(s =>
         {
