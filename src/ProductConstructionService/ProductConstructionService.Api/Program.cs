@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Azure.Identity;
-using Azure.Storage.Queues;
 using ProductConstructionService.Api.Configuration;
-using ProductConstructionService.Api.Queue;
-using ProductConstructionService.Api.VirtualMonoRepo;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,10 +33,11 @@ builder.ConfigurePcs(
     addEndpointAuthentication: !isDevelopment,
     addSwagger: useSwagger);
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    _ => ConnectionMultiplexer.Connect(
-        builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Missing connection string."))
-);
+var redisConfig = ConfigurationOptions.Parse(
+    builder.Configuration.GetConnectionString("Redis") ?? throw new Exception("Missing connection string."));
+
+await redisConfig.ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfig));
 
 var app = builder.Build();
 
