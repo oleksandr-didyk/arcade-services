@@ -77,17 +77,16 @@ public static class ProductConstructionServiceExtension
         services.AddSingleton<IInstallationLookup, BuildAssetRegistryInstallationLookup>(); ;
     }
 
-    public static async Task AddRedis(
+    public static async Task AddStateManager(
         this IServiceCollection services,
         IConfiguration configuration,
-        bool isDevelopment)
+        bool useAuth)
     {
         var redisConfig = ConfigurationOptions.Parse(
             configuration.GetSection("ConnectionStrings").GetRequiredValue(RedisConnectionString));
         var managedIdentityId = configuration[ManagedIdentityClientId];
 
-        // Local redis instance should not need authentication
-        if (!isDevelopment)
+        if (useAuth)
         {
             AzureCacheOptions azureOptions = new();
             if (managedIdentityId != "system")
@@ -98,6 +97,7 @@ public static class ProductConstructionServiceExtension
             await redisConfig.ConfigureForAzureAsync(azureOptions);
         }
 
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfig));
+        services.AddSingleton(redisConfig);
+        services.AddSingleton<IStateManagerFactory, StateManagerFactory>();
     }
 }
