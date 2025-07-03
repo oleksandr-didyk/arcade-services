@@ -13,4 +13,5 @@ stages:
     steps:
     - powershell: |
         docker pull dotnetdhmirror-f8bzbjakh8cga6ab.azurecr.io/registry:2
+        docker push dotnetdhmirror-f8bzbjakh8cga6ab.azurecr.io/registry:2
       displayName: Pull image
