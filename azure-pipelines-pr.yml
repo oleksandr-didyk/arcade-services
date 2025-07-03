@@ -2,7 +2,7 @@ trigger: none
 
 pool:
   name: NetCore-Public
-  demands: ImageOverride -equals 1es-windows-2022-open
+  demands: ImageOverride -equals 1es-ubuntu-2004-open
 
 stages:
 - stage: pull
